@@ -6,5 +6,6 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "pandas>=2.3.3",
+    "pgcli>=4.3.0",
     "pyarrow>=22.0.0",
 ]
