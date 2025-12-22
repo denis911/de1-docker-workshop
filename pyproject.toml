@@ -9,3 +9,8 @@ dependencies = [
     "pgcli>=4.3.0",
     "pyarrow>=22.0.0",
 ]
+
+[dependency-groups]
+dev = [
+    "jupyter>=1.1.1",
+]
