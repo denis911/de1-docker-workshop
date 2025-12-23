@@ -290,3 +290,101 @@ Important notes:
 - We need to provide the network for Docker to find the Postgres container. It goes before the name of the image.
 - Since Postgres is running on a separate container, the host argument will have to point to the container name of Postgres (pgdatabase).
 - You can drop the table in pgAdmin beforehand if you want, but the script will automatically replace the pre-existing table.
+
+## Docker Compose
+
+docker-compose allows us to launch multiple containers using a single configuration file, so that we don't have to run multiple complex docker run commands separately.
+
+Docker compose makes use of YAML files. Here's the docker-compose.yaml file for running the Postgres and pgAdmin containers:
+
+```yaml
+services:
+  pgdatabase:
+    image: postgres:18
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=ny_taxi
+    volumes:
+      - "ny_taxi_postgres_data:/var/lib/postgresql:rw"
+    ports:
+      - "5432:5432"
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=root
+    volumes:
+      - "pgadmin_data:/var/lib/pgadmin"
+    ports:
+      - "8085:80"
+
+volumes:
+  ny_taxi_postgres_data:
+  pgadmin_data:
+```
+
+We don't have to specify a network because docker-compose takes care of it: every single container (or "service", as the file states) will run within the same network and will be able to find each other according to their names (pgdatabase and pgadmin in this example).
+All other details from the docker run commands (environment variables, volumes and ports) are mentioned accordingly in the file following YAML syntax.
+Start Services with Docker Compose
+
+We can now run Docker compose by running the following command from the same directory where docker-compose.yaml is found. Make sure that all previous containers aren't running anymore:
+
+```bash
+docker-compose up
+```
+
+Note: this command assumes that the ny_taxi_postgres_data used for mounting the volume is in the same directory as docker-compose.yaml.
+
+Since the settings for pgAdmin were stored within the container and we have killed the previous one, you will have to re-create the connection by following the steps in the pgAdmin section.
+
+You will have to press Ctrl+C in order to shut down the containers. The proper way of shutting them down is with this command:
+
+```bash
+docker-compose down
+```
+
+And if you want to run the containers again in the background rather than in the foreground (thus freeing up your terminal), you can run them in detached mode:
+
+```bash
+docker-compose up -d
+```
+
+Other useful commands:
+
+```bash
+# View logs
+docker-compose logs
+
+# Stop and remove volumes
+docker-compose down -v
+```
+
+Benefits of Docker Compose:
+
+- Single command to start all services
+- Automatic network creation
+- Easy configuration management
+- Declarative infrastructure
+
+If you want to re-run the dockerized ingest script when you run Postgres and pgAdmin with docker-compose, you will have to find the name of the virtual network that Docker compose created for the containers. You can use the command docker network ls to find it and then change the docker run command for the dockerized script to include the network name.
+
+```bash
+# check the network link:
+docker network ls 
+
+# it's pipeline_default
+# now run the script:
+docker run -it \
+  --network=pipeline_default \
+  taxi_ingest:v001 \
+    --pg-user=root \
+    --pg-pass=root \
+    --pg-host=pgdatabase \
+    --pg-port=5432 \
+    --pg-db=ny_taxi \
+    --target-table=yellow_taxi_trips_2021_2 \
+    --year=2021 \
+    --month=2 \
+    --chunksize=100000
+```
