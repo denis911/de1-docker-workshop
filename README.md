@@ -2,6 +2,10 @@
 
 Docker and PostgreSQL: Data Engineering Workshop
 
+> **Note:** This workshop covers Docker and PostgreSQL. For Terraform/GCP setup, see the [Terraform GCP Setup](#terraform-gcp-setup) section below.
+
+------- REPLACE
+
 In this workshop, we will explore Docker fundamentals and data engineering workflows using Docker containers. This workshop is an update for Module 1 of the Data Engineering Zoomcamp.
 
 Data Engineering is the design and development of systems for collecting, storing and analyzing data at scale.
@@ -388,3 +392,95 @@ docker run -it \
     --month=2 \
     --chunksize=100000
 ```
+
+## Terraform GCP Setup
+
+### Creating a GCP Service Account for Terraform
+
+To provision GCP resources (like GCS buckets and BigQuery datasets) with Terraform, you need to create a dedicated service account.
+
+#### Step 1: Create the Service Account
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Navigate to **IAM & Admin** → **Service Accounts**
+3. Click **+ CREATE SERVICE ACCOUNT**
+4. Fill in:
+   - **Service account name**: `terraform`
+   - **Service account description**: `Service account for Terraform infrastructure management`
+5. Click **CREATE AND CONTINUE**
+6. Grant the following roles:
+   - **Storage Admin** (for GCS buckets)
+   - **BigQuery Admin** (for BigQuery datasets)
+   - **Editor** (or specific roles for the resources you need)
+7. Click **DONE**
+
+#### Step 2: Download the Service Account JSON Key
+
+**Yes, you must download the JSON key file** - GCP Console cannot automatically pick up credentials from the cloud for Terraform running on your local workstation.
+
+1. In the Service Accounts list, find your `terraform` service account
+2. Click on the **Actions** (three dots) menu → **Manage keys**
+3. Click **ADD KEY** → **Create new key**
+4. Select **JSON** key type
+5. Click **CREATE** - the JSON file will download to your computer
+6. Save it securely (e.g., `~/.gcp/terraform-service-account.json`)
+
+#### Step 3: Configure Terraform Authentication
+
+Set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable to point to your JSON key file:
+
+**Windows (PowerShell):**
+```powershell
+$env:GOOGLE_APPLICATION_CREDENTIALS = "C:\Users\yourusername\.gcp\terraform-service-account.json"
+```
+
+**Windows (CMD):**
+```cmd
+set GOOGLE_APPLICATION_CREDENTIALS=C:\Users\yourusername\.gcp\terraform-service-account.json
+```
+
+**Linux/macOS (Bash):**
+```bash
+export GOOGLE_APPLICATION_CREDENTIALS="/home/yourusername/.gcp/terraform-service-account.json"
+```
+
+#### Step 4: Configure Terraform Provider
+
+Create or update your `provider.tf`:
+
+```hcl
+provider "google" {
+  project = "your-gcp-project-id"
+  region  = "us-central1"
+}
+
+provider "google-beta" {
+  project = "your-gcp-project-id"
+  region  = "us-central1"
+}
+```
+
+#### Step 5: Initialize and Use Terraform
+
+```bash
+terraform init
+terraform plan
+terraform apply
+```
+
+### Security Best Practices
+
+- **Never commit the JSON key file to version control** - add it to `.gitignore`
+- **Rotate keys periodically** - create new keys and revoke old ones
+- **Use minimal permissions** - only grant the roles needed for your resources
+- **Consider using Workload Identity** for production/GKE environments
+
+### Alternative: gcloud Application Default Credentials
+
+For development, you can also use your personal Google account:
+
+```bash
+gcloud auth application-default login
+```
+
+This will open a browser for authentication, but for Terraform automation, the service account approach is recommended.
