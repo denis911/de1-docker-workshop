@@ -1,6 +1,9 @@
 # Parquet files - we dont need them committed to save space
 *.parquet
 
+# CSV files too -
+*.csv
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
