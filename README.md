@@ -4,9 +4,7 @@ Docker and PostgreSQL: Data Engineering Workshop
 
 > **Note:** This workshop covers Docker and PostgreSQL. For Terraform/GCP setup, see the [Terraform GCP Setup](#terraform-gcp-setup) section below.
 
-------- REPLACE
-
-In this workshop, we will explore Docker fundamentals and data engineering workflows using Docker containers. This workshop is an update for Module 1 of the Data Engineering Zoomcamp.
+In this workshop, we will explore Docker fundamentals and data engineering workflows using Docker containers.
 
 Data Engineering is the design and development of systems for collecting, storing and analyzing data at scale.
 
@@ -429,20 +427,49 @@ To provision GCP resources (like GCS buckets and BigQuery datasets) with Terrafo
 
 Set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable to point to your JSON key file:
 
-**Windows (PowerShell):**
+**Windows (PowerShell) - Session only (will reset after restart):**
 ```powershell
 $env:GOOGLE_APPLICATION_CREDENTIALS = "C:\Users\yourusername\.gcp\terraform-service-account.json"
 ```
 
-**Windows (CMD):**
+**Windows (CMD) - Session only (will reset after restart):**
 ```cmd
 set GOOGLE_APPLICATION_CREDENTIALS=C:\Users\yourusername\.gcp\terraform-service-account.json
 ```
 
-**Linux/macOS (Bash):**
+**Linux/macOS (Bash) - Session only (will reset after restart):**
 ```bash
 export GOOGLE_APPLICATION_CREDENTIALS="/home/yourusername/.gcp/terraform-service-account.json"
 ```
+
+#### Making Environment Variables Persistent on Windows
+
+The commands above only set the variable for the current terminal session. To make it persist across restarts:
+
+**Option 1: User Environment Variable (Recommended)**
+1. Press `Win + R`, type `sysdm.cpl`, press Enter
+2. Go to **Advanced** → **Environment Variables**
+3. Under **User variables**, click **New**
+4. Variable name: `GOOGLE_APPLICATION_CREDENTIALS`
+5. Variable value: `C:\Users\yourusername\.gcp\terraform-service-account.json`
+6. Click **OK** on all dialogs
+
+**Option 2: System Environment Variable**
+1. Same as above, but click **New** under **System variables** instead
+2. Requires admin privileges
+
+**Option 3: Using PowerShell Profile (PowerShell only)**
+```powershell
+# Add to your PowerShell profile
+Add-Content -Path $PROFILE -Value '$env:GOOGLE_APPLICATION_CREDENTIALS = "C:\Users\yourusername\.gcp\terraform-service-account.json"'
+```
+
+**Option 4: Using .env file in project**
+Create a `.env` file in your Terraform project directory:
+```
+GOOGLE_APPLICATION_CREDENTIALS=C:\Users\yourusername\.gcp\terraform-service-account.json
+```
+Then use a tool like [`tfenv`](https://github.com/tfutils/tfenv) or load it in your shell before running Terraform.
 
 #### Step 4: Configure Terraform Provider
 
@@ -484,3 +511,51 @@ gcloud auth application-default login
 ```
 
 This will open a browser for authentication, but for Terraform automation, the service account approach is recommended.
+
+### Terraform Configuration Files
+
+The project includes Terraform configuration files in the `terraform/` directory:
+
+- `provider.tf` - Google provider configuration
+- `variables.tf` - Variable definitions for GCP project and region
+- `terraform.tfvars.example` - Template for your project-specific values
+
+#### Setup Steps:
+
+1. **Copy the example tfvars file:**
+   ```bash
+   cp terraform/terraform.tfvars.example terraform/terraform.tfvars
+   ```
+
+2. **Edit `terraform.tfvars` and fill in your GCP project ID:**
+   ```hcl
+   gcp_project_id = "your-actual-project-id"
+   gcp_region     = "us-central1"
+   ```
+
+3. **Initialize Terraform:**
+   ```bash
+   cd terraform
+   terraform init
+   ```
+
+4. **Run Terraform commands:**
+   ```bash
+   terraform plan
+   terraform apply
+   ```
+
+#### Security Note
+
+- `terraform/terraform.tfvars` is in `.gitignore` and will NOT be committed
+- Your JSON service account key is also protected by `.gitignore`
+- Only `terraform.tfvars.example` is version controlled as a template
+
+#### Project Structure
+
+```
+terraform/
+├── provider.tf            # Google provider configuration
+├── variables.tf           # Variable definitions
+└── terraform.tfvars.example  # Template (copy to terraform.tfvars)
+```
