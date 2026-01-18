@@ -1,21 +1,28 @@
-# de1-docker-compose-Postgres-SQL-Terraform-workshop
+# de1-docker-workshop
 
-Docker and PostgreSQL: Data Engineering Workshop
+Docker, PostgreSQL & Terraform: Data Engineering Workshop
 
-> **Note:** This workshop covers Docker and PostgreSQL. For Terraform/GCP setup, see the [Terraform GCP Setup](#terraform-gcp-setup) section below.
-
-In this workshop, we will explore Docker fundamentals and data engineering workflows using Docker containers.
+In this workshop, we explore Docker fundamentals, PostgreSQL, and cloud infrastructure with Terraform on Google Cloud Platform.
 
 Data Engineering is the design and development of systems for collecting, storing and analyzing data at scale.
 
-We will cover:
+## Workshop Contents
 
-- Introduction to Docker and containerization
+1. **Docker Basics** - Running PostgreSQL, pgAdmin, data ingestion
+2. **Docker Testing** - Interactive container for debugging Python/pip
+3. **Docker Compose** - Multi-container orchestration
+4. **Terraform on GCP** - Cloud infrastructure with Google Cloud Platform
+
+--- DETAILED CONTENTS ---
+
+
+## 1. Docker Basics
+
+### What You'll Learn
 - Running PostgreSQL in a Docker container
 - Data ingestion into PostgreSQL
 - Working with pgAdmin for database management
 - Docker networking and port mapping
-- Docker Compose for multi-container applications
 - Creating a data ingestion pipeline
 - SQL refresher with real-world data
 - Best practices for containerized data engineering workflows
