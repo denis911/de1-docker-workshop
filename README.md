@@ -1,4 +1,4 @@
-# de1-docker-workshop
+# de1-docker-compose-Postgres-SQL-Terraform-workshop
 
 Docker and PostgreSQL: Data Engineering Workshop
 
