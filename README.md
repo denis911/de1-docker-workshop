@@ -300,7 +300,51 @@ Important notes:
 - Since Postgres is running on a separate container, the host argument will have to point to the container name of Postgres (pgdatabase).
 - You can drop the table in pgAdmin beforehand if you want, but the script will automatically replace the pre-existing table.
 
-## Docker Compose
+
+## 2. Docker Testing (Interactive Debugging)
+
+A special Dockerfile (`Dockerfile-test`) is provided for testing and debugging Python/pip inside containers.
+
+### Build and Run
+
+**Windows (PowerShell):**
+```powershell
+# Build the image
+docker build -f Dockerfile-test -t test-image .
+
+# Run interactively (auto-remove on exit)
+docker run -it --rm test-image
+```
+
+### Inside the Container
+
+Once inside the bash shell, you can:
+```bash
+# Check Python version
+python --version
+
+# List installed packages
+pip list
+
+# Run Python scripts
+python pipeline.py
+
+# Use uv to run commands
+uv run python pipeline.py
+```
+
+### Exit the Container
+
+Type `exit` or press `Ctrl+D` - the container will be automatically removed.
+
+### Quick One-Liner
+
+```powershell
+docker build -f Dockerfile-test -t test-image . && docker run -it --rm test-image
+```
+
+
+## 3. Docker Compose
 
 docker-compose allows us to launch multiple containers using a single configuration file, so that we don't have to run multiple complex docker run commands separately.
 
@@ -398,7 +442,7 @@ docker run -it \
     --chunksize=100000
 ```
 
-## Terraform GCP Setup
+## 4. Terraform on GCP
 
 ### Creating a GCP Service Account for Terraform
 
