@@ -1,4 +1,4 @@
-# de1-docker-PostgreSQL-GCP-Terraform-workshop
+# de1-docker-workshop
 
 Docker, PostgreSQL & Terraform: Data Engineering Workshop
 
@@ -6,11 +6,27 @@ In this workshop, we explore Docker fundamentals, PostgreSQL, and cloud infrastr
 
 Data Engineering is the design and development of systems for collecting, storing and analyzing data at scale.
 
+## Project Structure
+
+```
+├── data/                   # Data files (parquet, CSV)
+│   ├── green_tripdata_2025-11.parquet
+│   └── taxi_zone_lookup.csv
+├── terraform/              # GCP Terraform configuration
+├── pipeline/               # Pipeline scripts
+├── test/                   # Test files
+├── ingest_pipeline.py      # Data ingestion pipeline
+├── ingest_data.py          # Data ingestion script
+├── docker-compose.yaml     # Docker services (PostgreSQL, pgAdmin, loader)
+├── Dockerfile-test         # For debugging/testing
+└── README.md
+```
+
 ## Workshop Contents
 
-1. **Docker Basics** - Running PostgreSQL, pgAdmin, data ingestion
-2. **Docker Testing** - Interactive container for debugging Python/pip
-3. **Docker Compose** - Multi-container orchestration
+1. **Docker Compose** - PostgreSQL, pgAdmin, loader (recommended)
+2. **Load Data** - Parquet files into PostgreSQL
+3. **Docker Testing** - Interactive container for debugging
 4. **Terraform on GCP** - Cloud infrastructure with Google Cloud Platform
 
 --- DETAILED CONTENTS ---
@@ -377,6 +393,81 @@ docker exec -it postgres psql -U postgres -d ny_taxi
      - Username: `postgres`
      - Password: `postgres`
 5. Click **Save**
+
+
+## 5. Load Parquet Data into PostgreSQL
+
+A simple loader script (`ingest_pipeline.py`) pushes parquet and CSV files from the `data/` directory into PostgreSQL.
+
+### Data Directory
+
+All data files are stored in the `data/` directory:
+- `green_tripdata_2025-11.parquet` - Green taxi trip data
+- `taxi_zone_lookup.csv` - Taxi zone lookup table
+
+### Run the Loader
+
+The `loader` service is defined in `docker-compose.yaml`. It:
+- Mounts the current directory so it can access `data/` folder
+- Waits for PostgreSQL to be healthy before running
+- Installs dependencies and runs the ingestion script
+
+**Start the loader:**
+```bash
+docker-compose run loader
+```
+
+This will:
+1. Start PostgreSQL if not running (waits for it to be healthy)
+2. Run the loader which reads all files from `data/` directory
+3. Load data into PostgreSQL:
+   - `green_tripdata_2025-11.parquet` → `green_trips` table
+   - `taxi_zone_lookup.csv` → `taxi_zones` table
+
+**Or run everything together:**
+```bash
+docker-compose up -d db pgadmin  # Start DB and pgAdmin
+docker-compose run loader         # Run loader to ingest data
+```
+
+### How It Works
+
+```python
+# ingest_pipeline.py - Loads parquet and CSV files into PostgreSQL
+FILES = [
+    {"path": "data/green_tripdata_2025-11.parquet", "table": "green_trips"},
+    {"path": "data/taxi_zone_lookup.csv", "table": "taxi_zones"},
+]
+
+for file_info in FILES:
+    df = pd.read_parquet(file_info["path"])  # or pd.read_csv()
+    df.to_sql(file_info["table"], ENGINE, if_exists="replace", index=False)
+```
+
+### Verify the Data
+
+```bash
+# Connect to PostgreSQL
+docker exec -it postgres psql -U postgres -d ny_taxi
+
+# Query the loaded tables
+SELECT COUNT(*) FROM green_trips;
+SELECT COUNT(*) FROM taxi_zones;
+
+# Join example
+SELECT * 
+FROM green_trips t
+JOIN taxi_zones z ON t.pulocationid = z.locationid
+LIMIT 5;
+```
+
+### Using pgAdmin
+
+1. Go to [http://localhost:8080](http://localhost:8080)
+2. Login with `pgadmin@pgadmin.com` / `pgadmin`
+3. You should see both tables under `Tables`:
+   - `green_trips` - Green taxi trip data
+   - `taxi_zones` - Taxi zone lookup table
 
 
 ## 4. Terraform on GCP

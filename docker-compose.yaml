@@ -37,7 +37,7 @@ services:
       db:
         condition: service_healthy
     command: >
-      bash -c "pip install pandas pyarrow sqlalchemy psycopg2-binary -q && python ingest_duckdb.py"
+      bash -c "pip install pandas pyarrow sqlalchemy psycopg2-binary -q && python ingest_pipeline.py"
     environment:
       - PG_HOST=db
       - PG_PORT=5432
