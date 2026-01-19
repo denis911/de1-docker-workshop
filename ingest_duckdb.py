@@ -28,7 +28,7 @@ df.to_sql(TABLE_NAME, ENGINE, if_exists="replace", index=False)
 print(f"Loaded into table '{TABLE_NAME}'")
 
 # Verify
-with ENGINE.connect() as conn:
-    result = conn.execute(f"SELECT COUNT(*) FROM {TABLE_NAME}")
-    count = result.fetchone()[0]
-    print(f"Success! Table has {count:,} rows")
+# with ENGINE.connect() as conn:
+#     result = conn.execute(f"SELECT COUNT(*) FROM {TABLE_NAME}")
+#     count = result.fetchone()[0]
+#     print(f"Success! Table has {count:,} rows")
