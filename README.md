@@ -9,16 +9,21 @@ Data Engineering is the design and development of systems for collecting, storin
 ## Project Structure
 
 ```bash
-├── data/                   # Data files (parquet, CSV) - not commited to Github
+├── data/                       # Data files (parquet, CSV) - not commited to Github
 │   ├── green_tripdata_2025-11.parquet
 │   └── taxi_zone_lookup.csv
-├── terraform/              # GCP Terraform configuration
-├── pipeline/               # Pipeline scripts
-├── test/                   # Test files
-├── ingest_pipeline.py      # Data ingestion pipeline
-├── ingest_data.py          # Data ingestion script
-├── docker-compose.yaml     # Docker services (PostgreSQL, pgAdmin, loader)
-├── Dockerfile-test         # For debugging/testing
+├── terraform/                  # GCP Terraform configuration
+├── pipeline/                   # Pipeline scripts
+├── test/                       # Test files
+├── ingest_pipeline.py          # Data ingestion pipeline
+├── ingest_data.py              # Data ingestion script
+├── ingest_data_hardcoded.py    # Hardcoded data ingestion script
+├── NY Taxi data prep.ipynb     # Jupyter notebook for data preparation
+├── docker-compose.yaml         # Docker services (PostgreSQL, pgAdmin, loader)
+├── Dockerfile                  # Dockerfile for ingestion script
+├── Dockerfile-test             # For debugging/testing
+├── pyproject.toml              # Python project configuration
+├── uv.lock                     # Python dependency lock file
 └── README.md
 ```
 
@@ -566,17 +571,13 @@ Then use a tool like [`tfenv`](https://github.com/tfutils/tfenv) or load it in y
 
 #### Step 4: Configure Terraform Provider
 
-Create or update your `provider.tf`:
+Check your `terraform/main.tf` to ensure the Google provider is configured correctly.
 
 ```hcl
 provider "google" {
-  project = "your-gcp-project-id"
-  region  = "us-central1"
-}
-
-provider "google-beta" {
-  project = "your-gcp-project-id"
-  region  = "us-central1"
+  credentials = file(var.credentials)
+  project     = var.project
+  region      = var.region
 }
 ```
 
@@ -609,7 +610,7 @@ This will open a browser for authentication, but for Terraform automation, the s
 
 The project includes Terraform configuration files in the `terraform/` directory:
 
-- `provider.tf` - Google provider configuration
+- `main.tf` - Main Terraform configuration including provider and resources
 - `variables.tf` - Variable definitions for GCP project and region
 - `terraform.tfvars.example` - Template for your project-specific values
 
@@ -652,7 +653,7 @@ The project includes Terraform configuration files in the `terraform/` directory
 
 ```bash
 terraform/
-├── provider.tf            # Google provider configuration
+├── main.tf                # Main Terraform configuration
 ├── variables.tf           # Variable definitions
 └── terraform.tfvars.example  # Template (copy to terraform.tfvars)
 ```
