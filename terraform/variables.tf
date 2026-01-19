@@ -1,7 +1,7 @@
 # Terraform Variables for GCP Configuration
 
 variable "gcp_project_id" {
-  description = "Google Cloud Project ID"
+  description = "data-eng-78586"
   type        = string
 }
 
