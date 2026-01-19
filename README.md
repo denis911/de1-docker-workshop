@@ -1,4 +1,4 @@
-# de1-docker-workshop
+# de1-Docker-PostgreSQL-GCP-Terraform-workshop
 
 Docker, PostgreSQL & Terraform: Data Engineering Workshop
 
@@ -8,8 +8,8 @@ Data Engineering is the design and development of systems for collecting, storin
 
 ## Project Structure
 
-```
-├── data/                   # Data files (parquet, CSV)
+```bash
+├── data/                   # Data files (parquet, CSV) - not commited to Github
 │   ├── green_tripdata_2025-11.parquet
 │   └── taxi_zone_lookup.csv
 ├── terraform/              # GCP Terraform configuration
@@ -31,10 +31,10 @@ Data Engineering is the design and development of systems for collecting, storin
 
 --- DETAILED CONTENTS ---
 
-
 ## 1. Docker Basics
 
 ### What You'll Learn
+
 - Running PostgreSQL in a Docker container
 - Data ingestion into PostgreSQL
 - Working with pgAdmin for database management
@@ -229,7 +229,6 @@ Important notes:
 - Since Postgres is running on a separate container, the host argument will have to point to the container name of Postgres (pgdatabase).
 - You can drop the table in pgAdmin beforehand if you want, but the script will automatically replace the pre-existing table.
 
-
 ## 2. Docker Testing (Interactive Debugging)
 
 A special Dockerfile (`Dockerfile-test`) is provided for testing and debugging Python/pip inside containers.
@@ -237,6 +236,7 @@ A special Dockerfile (`Dockerfile-test`) is provided for testing and debugging P
 ### Build and Run
 
 **Windows (PowerShell):**
+
 ```powershell
 # Build the image
 docker build -f Dockerfile-test -t test-image .
@@ -248,6 +248,7 @@ docker run -it --rm test-image
 ### Inside the Container
 
 Once inside the bash shell, you can:
+
 ```bash
 # Check Python version
 python --version
@@ -271,7 +272,6 @@ Type `exit` or press `Ctrl+D` - the container will be automatically removed.
 ```powershell
 docker build -f Dockerfile-test -t test-image . && docker run -it --rm test-image
 ```
-
 
 ## 3. Docker Compose
 
@@ -369,12 +369,15 @@ docker-compose ps
 ### Connect to PostgreSQL
 
 **Using pgcli:**
+
 ```bash
 uv run pgcli -h localhost -p 5433 -u postgres -d ny_taxi
 ```
+
 Password: `postgres`
 
 **Using psql:**
+
 ```bash
 docker exec -it postgres psql -U postgres -d ny_taxi
 ```
@@ -394,7 +397,6 @@ docker exec -it postgres psql -U postgres -d ny_taxi
      - Password: `postgres`
 5. Click **Save**
 
-
 ## 5. Load Parquet Data into PostgreSQL
 
 A simple loader script (`ingest_pipeline.py`) pushes parquet and CSV files from the `data/` directory into PostgreSQL.
@@ -402,22 +404,26 @@ A simple loader script (`ingest_pipeline.py`) pushes parquet and CSV files from 
 ### Data Directory
 
 All data files are stored in the `data/` directory:
+
 - `green_tripdata_2025-11.parquet` - Green taxi trip data
 - `taxi_zone_lookup.csv` - Taxi zone lookup table
 
 ### Run the Loader
 
 The `loader` service is defined in `docker-compose.yaml`. It:
+
 - Mounts the current directory so it can access `data/` folder
 - Waits for PostgreSQL to be healthy before running
 - Installs dependencies and runs the ingestion script
 
 **Start the loader:**
+
 ```bash
 docker-compose run loader
 ```
 
 This will:
+
 1. Start PostgreSQL if not running (waits for it to be healthy)
 2. Run the loader which reads all files from `data/` directory
 3. Load data into PostgreSQL:
@@ -425,6 +431,7 @@ This will:
    - `taxi_zone_lookup.csv` → `taxi_zones` table
 
 **Or run everything together:**
+
 ```bash
 docker-compose up -d db pgadmin  # Start DB and pgAdmin
 docker-compose run loader         # Run loader to ingest data
@@ -469,7 +476,6 @@ LIMIT 5;
    - `green_trips` - Green taxi trip data
    - `taxi_zones` - Taxi zone lookup table
 
-
 ## 4. Terraform on GCP
 
 ### Creating a GCP Service Account for Terraform
@@ -507,16 +513,19 @@ To provision GCP resources (like GCS buckets and BigQuery datasets) with Terrafo
 Set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable to point to your JSON key file:
 
 **Windows (PowerShell) - Session only (will reset after restart):**
+
 ```powershell
 $env:GOOGLE_APPLICATION_CREDENTIALS = "C:\Users\yourusername\.gcp\terraform-service-account.json"
 ```
 
 **Windows (CMD) - Session only (will reset after restart):**
+
 ```cmd
 set GOOGLE_APPLICATION_CREDENTIALS=C:\Users\yourusername\.gcp\terraform-service-account.json
 ```
 
 **Linux/macOS (Bash) - Session only (will reset after restart):**
+
 ```bash
 export GOOGLE_APPLICATION_CREDENTIALS="/home/yourusername/.gcp/terraform-service-account.json"
 ```
@@ -526,6 +535,7 @@ export GOOGLE_APPLICATION_CREDENTIALS="/home/yourusername/.gcp/terraform-service
 The commands above only set the variable for the current terminal session. To make it persist across restarts:
 
 **Option 1: User Environment Variable (Recommended)**
+
 1. Press `Win + R`, type `sysdm.cpl`, press Enter
 2. Go to **Advanced** → **Environment Variables**
 3. Under **User variables**, click **New**
@@ -534,10 +544,12 @@ The commands above only set the variable for the current terminal session. To ma
 6. Click **OK** on all dialogs
 
 **Option 2: System Environment Variable**
+
 1. Same as above, but click **New** under **System variables** instead
 2. Requires admin privileges
 
 **Option 3: Using PowerShell Profile (PowerShell only)**
+
 ```powershell
 # Add to your PowerShell profile
 Add-Content -Path $PROFILE -Value '$env:GOOGLE_APPLICATION_CREDENTIALS = "C:\Users\yourusername\.gcp\terraform-service-account.json"'
@@ -545,9 +557,11 @@ Add-Content -Path $PROFILE -Value '$env:GOOGLE_APPLICATION_CREDENTIALS = "C:\Use
 
 **Option 4: Using .env file in project**
 Create a `.env` file in your Terraform project directory:
-```
+
+```bash
 GOOGLE_APPLICATION_CREDENTIALS=C:\Users\yourusername\.gcp\terraform-service-account.json
 ```
+
 Then use a tool like [`tfenv`](https://github.com/tfutils/tfenv) or load it in your shell before running Terraform.
 
 #### Step 4: Configure Terraform Provider
@@ -599,26 +613,30 @@ The project includes Terraform configuration files in the `terraform/` directory
 - `variables.tf` - Variable definitions for GCP project and region
 - `terraform.tfvars.example` - Template for your project-specific values
 
-#### Setup Steps:
+#### Setup Steps
 
 1. **Copy the example tfvars file:**
+
    ```bash
    cp terraform/terraform.tfvars.example terraform/terraform.tfvars
    ```
 
 2. **Edit `terraform.tfvars` and fill in your GCP project ID:**
+
    ```hcl
    gcp_project_id = "your-actual-project-id"
    gcp_region     = "us-central1"
    ```
 
 3. **Initialize Terraform:**
+
    ```bash
    cd terraform
    terraform init
    ```
 
 4. **Run Terraform commands:**
+
    ```bash
    terraform plan
    terraform apply
@@ -632,7 +650,7 @@ The project includes Terraform configuration files in the `terraform/` directory
 
 #### Project Structure
 
-```
+```bash
 terraform/
 ├── provider.tf            # Google provider configuration
 ├── variables.tf           # Variable definitions
